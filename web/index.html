@@ -18,29 +18,27 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!-- The core Firebase JS SDK is always required and must be listed first -->
-  <script src="https://www.gstatic.com/firebasejs/7.5.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.5.0/firebase-firestore.js"></script>
-  <script src="/__/firebase/7.15.1/firebase-app.js"></script>
-  <script src="/__/firebase/7.15.1/firebase-analytics.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-firestore.js"></script>
   <script>
-      var firebaseConfig = {
+    var firebaseConfig =
+    {
       apiKey: "AIzaSyBjYu5mLE80U3IpQty9FHBucadCCmLny5k",
-      authDomain: "guarapp-91591.firebaseapp.com/",
+      authDomain: "guarapp-91591.firebaseapp.com",
       databaseURL: "https://guarapp-91591.firebaseio.com",
       projectId: "guarapp-91591",
       storageBucket: "guarapp-91591.appspot.com",
-      messagingSenderId: "...",
-      appId: "1:...:web:...",
-      measurementId: "G-..."
+      messagingSenderId: "142427592543",
+      appId: "1:142427592543:web:ef0b82660924aab5de48ea",
+      measurementId: "G-KHWYH9FVGG"
     };
-    firebase.initializeApp(firebaseConfig);
-  </script>
-  <script src="/__/firebase/init.js"></script>
 
-  <!-- This script installs service_worker.js to provide PWA functionality to
-       application. For more information, see:
-       https://developers.google.com/web/fundamentals/primers/service-workers -->
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+    firebase.firestore();
+  </script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

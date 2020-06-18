@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -14,6 +15,7 @@ class _PreLoadTicketScreenState extends State<PreLoadTicketScreen>
   @override
   Widget build(BuildContext context)
   {
+    Firestore.instance.collection('test').add({'test' : 'ok'});
     return Scaffold
     (
       body: FutureBuilder<QuerySnapshot>
@@ -24,7 +26,6 @@ class _PreLoadTicketScreenState extends State<PreLoadTicketScreen>
           switch(snapshot.connectionState)
           {
             case ConnectionState.none:
-              return Container();
             case ConnectionState.waiting:
               return Center(child: CircularProgressIndicator());
             default:
@@ -61,9 +62,58 @@ class _TicketScreenState extends State<TicketScreen>
         itemBuilder: (context, index)
         {
           Map data = _productList.elementAt(index).data;
-          return Image.network(data['url'], width: MediaQuery.of(context).size.width,);
+          return InkWell
+          (
+            onTap: ()
+            {
+
+            },
+            child: Container
+              (
+                alignment: Alignment.center,
+                padding: EdgeInsets.all(10),
+                child: Column
+                  (
+                  children:
+                  [
+                    SizedBox
+                      (
+                      height: 300,
+                      width: 300,
+                      child: ClipRRect
+                        (
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(8),
+                            topRight: Radius.circular(8)),
+                        child: Image.network(data['url'], fit: BoxFit.cover,
+                            alignment: Alignment.center, width: 300),
+                      ),
+                    ),
+                    Container
+                      (
+                      width: 300,
+                      padding: EdgeInsets.all(10),
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(color: Colors.redAccent,
+                          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(8),
+                              bottomRight: Radius.circular(8))),
+                      child: Column
+                        (
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:
+                        [
+                          Text(data["name"], style: TextStyle(fontSize: 20,
+                              fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text(data['description'], style: TextStyle(color: Colors.white))
+                        ],
+                      ),
+                    )
+                  ],
+                )
+            ),
+          );
         }
       ),
     );
   }
 }
+

@@ -13,7 +13,6 @@ class _PreLoadTicketScreenState extends State<PreLoadTicketScreen>
   @override
   Widget build(BuildContext context)
   {
-    Firestore.instance.collection('test').add({'test' : 'ok'});
     return Scaffold
     (
       body: FutureBuilder<QuerySnapshot>
@@ -79,7 +78,65 @@ class _TicketScreenState extends State<TicketScreen>
               padding: EdgeInsets.all(10),
               child: InkWell
                 (
-                onTap: (){},
+                onTap: ()
+                {
+                  DateTime now = DateTime.now();
+                  String id = '';
+                  Map<String, dynamic> checkoutMap =
+                  {
+                    "OrderNumber":id,
+                    "SoftDescriptor":"",
+                    "Cart":{
+                      "Discount":{
+                        "Type":"Percent",
+                        "Value":00
+                      },
+                      "Items":
+                      [
+                        {
+                          "Name":"Ingresso infantil",
+                          "Description":"",
+                          "UnitPrice":100*kidPrice.toInt(),
+                          "Quantity":kidAmount,
+                          "Type":"Asset",
+                          "Sku":"ABC001",
+                          "Weight":0
+                        },
+                      ]
+                    },
+                    "Shipping":{
+                      "SourceZipCode":"",
+                      "TargetZipCode":"",
+                      "Type":"WithoutShippingPickUp",
+                      "Services":[],
+                      "Address":{
+                        "Street":"",
+                        "Number":"",
+                        "Complement":"",
+                        "District":"",
+                        "City":"",
+                        "State":""
+                      }
+                    },
+                    "Payment":{
+                      "BoletoDiscount":0,
+                      "DebitDiscount":0,
+                      "Installments":null,
+                      "MaxNumberOfInstallments": null
+                    },
+                    "Customer":{
+                      "Identity":"",
+                      "FullName":"",
+                      "Email":"",
+                      "Phone":""
+                    },
+                    "Options":{
+                      "AntifraudEnabled":true,
+                      "ReturnUrl": ""
+                    },
+                    "Settings":null
+                  };
+                },
                 child: Column
                   (
                   children:

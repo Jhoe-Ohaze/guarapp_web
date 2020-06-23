@@ -14,7 +14,8 @@ class MyApp extends StatelessWidget
   {
     return MaterialApp
     (
-      title: 'Flutter Demo',
+      title: 'Guarapp Web',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData
       (
         primarySwatch: Colors.blue,

@@ -3,16 +3,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 class PreLoadTicketScreen extends StatefulWidget
 {
+  final DateTime selectedDate;
+  PreLoadTicketScreen(this.selectedDate);
   @override
-  _PreLoadTicketScreenState createState() => _PreLoadTicketScreenState();
+  _PreLoadTicketScreenState createState() => _PreLoadTicketScreenState(selectedDate);
 }
 
 class _PreLoadTicketScreenState extends State<PreLoadTicketScreen>
 {
+  final DateTime selectedDate;
+  _PreLoadTicketScreenState(this.selectedDate);
   @override
   Widget build(BuildContext context)
   {
@@ -28,7 +31,7 @@ class _PreLoadTicketScreenState extends State<PreLoadTicketScreen>
             case ConnectionState.none:
             case ConnectionState.done:
               List<DocumentSnapshot> docList = snapshot.data.documents.toList();
-              return TicketScreen(docList);
+              return TicketScreen(docList, selectedDate);
             default:
               return Center(child: CircularProgressIndicator());
           }
@@ -41,37 +44,29 @@ class _PreLoadTicketScreenState extends State<PreLoadTicketScreen>
 class TicketScreen extends StatefulWidget
 {
   final List<DocumentSnapshot> docList;
-  TicketScreen(this.docList);
+  final DateTime selectedDate;
+  TicketScreen(this.docList, this.selectedDate);
   @override
-  _TicketScreenState createState() => _TicketScreenState(docList);
+  _TicketScreenState createState() => _TicketScreenState(docList, selectedDate);
 }
 
 class _TicketScreenState extends State<TicketScreen>
 {
   final List<DocumentSnapshot> _productList;
-  _TicketScreenState(this._productList);
-
+  final DateTime selectedDate;
+  _TicketScreenState(this._productList, this.selectedDate);
+  bool isWeekend;
   List<bool> visible = [];
-  CalendarController _calendarController;
-  DateTime selectedDate, startDay;
 
   @override
   void initState()
   {
     super.initState();
-    _calendarController = CalendarController();
-    startDay = DateTime.now().hour > 14 ? DateTime.now():DateTime.now().add(Duration(days: 1));
+    isWeekend = (selectedDate.weekday == 6 || selectedDate.weekday == 7);
     for(int i = 0; i < _productList.length; i++)
     {
       visible.add(false);
     }
-  }
-
-  @override
-  void dispose()
-  {
-    _calendarController.dispose();
-    super.dispose();
   }
 
   @override
@@ -92,46 +87,7 @@ class _TicketScreenState extends State<TicketScreen>
             children:
             [
               backgroundWidget(orientation),
-              checker ? ListView
-              (
-                physics: ClampingScrollPhysics(),
-                children:
-                [
-                  calendar(orientation),
-                  AnimatedSwitcher
-                  (
-                    transitionBuilder: (Widget child, Animation<double> animation)
-                    {
-                      final  offsetAnimation = Tween<Offset>
-                        (begin: Offset(0.0, 2.0), end: Offset(0.0, 0.0)).animate(animation);
-                      return SlideTransition(child: child, position: offsetAnimation,);
-                    },
-                    duration: Duration(milliseconds: 1000),
-                    child: selectedDate == null ?
-                    Container() : portraitBuild(),
-                  )
-                ],
-              ) : Stack
-              (
-                alignment: Alignment.topLeft,
-                children:
-                [
-                  AnimatedSwitcher
-                    (
-                    transitionBuilder: (Widget child, Animation<double> animation)
-                    {
-                      final  offsetAnimation = Tween<Offset>
-                        (begin: Offset(0.0, 2.0), end: Offset(0.0, 0.0)).animate(animation);
-                      return SlideTransition(child: child, position: offsetAnimation,);
-                    },
-                    duration: Duration(milliseconds: 1000),
-                    child: selectedDate == null ?
-                    Container() : Container(alignment: Alignment.topRight,
-                        width: MediaQuery.of(context).size.width,child:landscapeBuild()),
-                  ),
-                  calendar(orientation)
-                ],
-              )
+              checker ? portraitBuild():landscapeBuild()
             ],
           ),
         );
@@ -146,10 +102,9 @@ class _TicketScreenState extends State<TicketScreen>
     bool checker = height>1.4*width;
     return GridView.builder
       (
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        physics: ClampingScrollPhysics(),
         itemCount: _productList.length,
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: checker ? width/4: width/5),
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 100),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
           (mainAxisSpacing: width/25, crossAxisSpacing: width/20, crossAxisCount: checker ? 1:2),
         itemBuilder: (context, index)
@@ -164,33 +119,39 @@ class _TicketScreenState extends State<TicketScreen>
   {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    bool checker = 1.3*height>width;
-    return Scaffold
+    bool checker = 1.6*height>width;
+    bool checker2 = 1.25*height>width;
+    return SingleChildScrollView
     (
-      backgroundColor: Colors.transparent,
-      appBar: PreferredSize
+      physics: ClampingScrollPhysics(),
+      child: Column
       (
-        preferredSize: Size.fromHeight(200),
-        child: Container
-        (
-          padding: EdgeInsets.only(top: 50, bottom: 50, left: 500, right: width/16),
-          child: Text('Escolha seu pacote', style: TextStyle(fontSize: 50,
-              color: Colors.grey[700], fontFamily: 'Fredoka')),
-        ),
-      ),
-      body: GridView.builder
-        (
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: _productList.length,
-          padding: EdgeInsets.only(left: width/2.5, right: width/16),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
-            (mainAxisSpacing: 20, crossAxisSpacing:20, crossAxisCount: checker ? 3:4),
-          itemBuilder: (context, index)
-          {
-            Map data = _productList.elementAt(index).data;
-            return productCard(data, index, false);
-          }
+        children:
+        [
+          Container
+            (
+            padding: EdgeInsets.only(top: 40, left: checker ? 100 : 150,
+                right: checker ? 100 : 150, bottom: 40),
+            child: Text('Escolha seu pacote', style: TextStyle(fontSize: checker ?
+              (checker2 ? width/15:width/20):width/25,
+                color: Colors.grey[700], fontFamily: 'Fredoka')),
+          ),
+          GridView.builder
+            (
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: _productList.length,
+              padding: EdgeInsets.symmetric(horizontal: 150, vertical: 10),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
+                (mainAxisSpacing: width/25, crossAxisSpacing: width/25,
+                  crossAxisCount: checker ? (checker2 ? 2 : 3): 4),
+              itemBuilder: (context, index)
+              {
+                Map data = _productList.elementAt(index).data;
+                return productCard(data, index, false);
+              }
+          ),
+        ],
       ),
     );
   }
@@ -240,13 +201,10 @@ class _TicketScreenState extends State<TicketScreen>
                 child: AspectRatio
                   (
                   aspectRatio: 1,
-                  child: Container
+                  child: ClipRRect
                   (
-                    decoration: BoxDecoration
-                    (
-                      borderRadius: BorderRadius.circular(4),
-                      color: Color(0x4400FF00),
-                    ),
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.network(isWeekend ? data['mask_weekend']:data['mask_week']),
                   ),
                 ),
               ),
@@ -264,7 +222,7 @@ class _TicketScreenState extends State<TicketScreen>
                       setState(() => visible[index] = !visible[index]);
                     },
                     onTap: (){html.window.location.href = 'http://guarapark.com';},
-                    hoverColor: Color(0x4400AAFF),
+                    hoverColor: Colors.transparent,
                   ),
                 ),
               ),
@@ -281,12 +239,12 @@ class _TicketScreenState extends State<TicketScreen>
     double width = MediaQuery.of(context).size.width;
     return PreferredSize
     (
-      preferredSize: Size.fromHeight(isPortrait? 80 : 100),
+      preferredSize: Size.fromHeight(95),
       child: Container
         (
         width: width,
         alignment: Alignment.centerLeft,
-        padding: EdgeInsets.fromLTRB(width/10, 10, width/20, 10),
+        padding: EdgeInsets.fromLTRB(80, 10, 30, 10),
         decoration: BoxDecoration
           (
           color: Colors.white,
@@ -304,22 +262,13 @@ class _TicketScreenState extends State<TicketScreen>
         (
           children:
           [
-            isPortrait?
-              Image.asset('lib/assets/img/logo_reduced.png', height: 120):
-              Image.asset('lib/assets/img/logo_full.png', height: 120),
+            Image.asset('lib/assets/img/logo_full.png', height: 120),
             Expanded(child: Container()),
-            FlatButton
-            (
-              shape: isPortrait?
-                      CircleBorder(): RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-              color: Colors.blue,
-              onPressed: () => html.window.location.href = 'http://guarapark.com',
-              child: Container(height: 50, alignment: Alignment.center,
-                child: orientation == Orientation.portrait?
-                  Icon(Icons.home, size: 30, color: Colors.white):
-                  Text('Voltar para a página inicial', style: TextStyle
-                        (color: Colors.white, fontFamily: 'Fredoka', fontSize: 20))),
-            )
+            FlatButton(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              color: Colors.blue, child: Container(height: 60, alignment: Alignment.center,
+                child: Text("Voltar", style: TextStyle(color: Colors.white,
+                  fontFamily: 'Fredoka', fontSize: 30))), onPressed: () =>
+                    Navigator.of(context).pop()),
           ],
         )
       ),
@@ -364,98 +313,6 @@ class _TicketScreenState extends State<TicketScreen>
         )
       ],
     );
-  }
-
-  Widget calendar(orientation)
-  {
-    double width = MediaQuery.of(context).size.width;
-    bool checker = orientation == Orientation.portrait;
-
-    void _onDaySelected(DateTime day, List events)
-    {
-      print('CALLBACK: _onDaySelected');
-      if(day.isAfter(startDay)) setState(() => selectedDate = day);
-    }
-
-    Widget portraitCalendar()
-    {
-      return Container
-        (
-        margin: EdgeInsets.symmetric(vertical: 20, horizontal: checker ? width/6: width/7),
-        padding: EdgeInsets.all(10),
-        decoration: BoxDecoration
-          (
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue, width: 2)
-        ),
-        child: TableCalendar
-          (
-          locale: 'pt_BR',
-          calendarController: _calendarController,
-          startingDayOfWeek: StartingDayOfWeek.sunday,
-          startDay: startDay,
-          endDay: DateTime(2020, 12, 31),
-          calendarStyle: CalendarStyle(
-            selectedColor: Colors.green[400],
-            todayColor: Colors.transparent,
-            markersColor: Colors.brown[700],
-            outsideDaysVisible: false,
-          ),
-          headerStyle: HeaderStyle
-            (
-            formatButtonTextStyle: TextStyle().copyWith(color: Colors.white, fontSize: 15.0),
-            formatButtonDecoration: BoxDecoration
-              (
-              color: Colors.deepOrange[400],
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-          ),
-          onDaySelected: _onDaySelected,
-        ),
-      );
-    }
-
-    Widget landscapeCalendar()
-    {
-      return Container
-        (
-        margin: EdgeInsets.symmetric(vertical: 20, horizontal: width/16),
-        padding: EdgeInsets.all(10),
-        height: 300,
-        width: 300,
-        decoration: BoxDecoration
-          (
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue, width: 2)
-        ),
-        child: TableCalendar
-          (
-          locale: 'pt_BR',
-          calendarController: _calendarController,
-          startingDayOfWeek: StartingDayOfWeek.sunday,
-          startDay: startDay,
-          endDay: DateTime(2020, 12, 31),
-          calendarStyle: CalendarStyle(
-            selectedColor: Colors.green[400],
-            todayColor: Colors.transparent,
-            markersColor: Colors.brown[700],
-            outsideDaysVisible: false,
-          ),
-          headerStyle: HeaderStyle
-            (
-            formatButtonTextStyle: TextStyle().copyWith(color: Colors.white, fontSize: 15.0),
-            formatButtonDecoration: BoxDecoration
-              (
-              color: Colors.deepOrange[400],
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-          ),
-          onDaySelected: _onDaySelected,
-        ),
-      );
-    }
-
-    return checker ? portraitCalendar():landscapeCalendar();
   }
 }
 

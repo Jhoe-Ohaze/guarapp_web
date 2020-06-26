@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarappweb/screens/calendar_screen.dart';
 import 'package:guarappweb/screens/ticket_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget
       ),
       home: Scaffold
       (
-        body: PreLoadTicketScreen(),
+        body: CalendarScreen(),
       ),
     );
   }

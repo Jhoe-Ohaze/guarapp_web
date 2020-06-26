@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:url_launcher/url_launcher.dart';
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -58,8 +58,7 @@ class _PaymentScreenState extends State<PaymentScreen>
               return Center(child: CircularProgressIndicator());
             default:
               String url = snapshot.data["settings"]["checkoutUrl"];
-              print(url);
-              launch(url);
+              html.window.location.href = url;
               return Scaffold
               (
                 body: Column

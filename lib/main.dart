@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:guarappweb/screens/ticket_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main()
 {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  initializeDateFormatting().then((_) => runApp(MyApp()));
 }
 
 class MyApp extends StatelessWidget

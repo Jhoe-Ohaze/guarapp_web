@@ -1,4 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:guarappweb/screens/ticket_screen.dart';
+import 'package:guarappweb/widgets/app_bar.dart';
+import 'package:guarappweb/widgets/background_widget.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget 
@@ -10,14 +14,16 @@ class CalendarScreen extends StatefulWidget
 class _CalendarScreenState extends State<CalendarScreen> 
 {
   CalendarController _calendarController;
-  DateTime selectedDate, startDay;
-  bool active = false;
+  DateTime selectedDate, startDay, currentDate;
 
   @override
   void initState()
   {
+    currentDate = DateTime.now();
+    currentDate = DateTime(currentDate.year, currentDate.month, currentDate.day);
     _calendarController = CalendarController();
-    startDay = DateTime.now().hour > 14 ? DateTime.now():DateTime.now().add(Duration(days: 1));
+    startDay = currentDate.hour < 15 ? currentDate : currentDate.add(Duration(days: 1));
+    selectedDate = startDay;
     super.initState();
   }
 
@@ -28,130 +34,43 @@ class _CalendarScreenState extends State<CalendarScreen>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) 
+  void openTicketScreen(DateTime selectedDate)
   {
-    return OrientationBuilder
-      (
-        builder: (context, orientation)
-        {
-          bool isPortrait = orientation == Orientation.portrait;
-          return Scaffold
-          (
-            appBar: appBar(orientation),
-            body: Stack
-            (
-              children:
-              [
-                backgroundWidget(orientation),
-                isPortrait ? SingleChildScrollView
-                (
-                  physics: ClampingScrollPhysics(),
-                  child: Column
-                  (
-                    children:
-                    [
-                      Container
-                      (
-                        padding: EdgeInsets.only(top: 40, bottom: 5, left: 20, right: 20),
-                        child: Text('Selecione uma data', style: TextStyle(color: Colors.grey[700],
-                            fontSize: 35, fontFamily: 'Fredoka')),
-                      ),
-                      calendar(orientation),
-                    ],
-                  ),
-                ):
-                SingleChildScrollView
-                (
-                  scrollDirection: Axis.horizontal,
-                  child: Row
-                  (
-                    children:
-                    [
-                      Container(alignment: Alignment.centerRight,
-                        margin: EdgeInsets.only(left: MediaQuery.of(context).size.width/6),
-                        width: 400,
-                        height: 500,
-                        child: calendar(orientation),),
-                      Column
-                        (
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children:
-                        [
-                          Container
-                            (
-                            width: MediaQuery.of(context).size.width/4,
-                            alignment: Alignment.centerLeft,
-                            margin: EdgeInsets.only(top: 60),
-                            child: Text('Calendário de funcionamento do Parque', textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.blue[600],
-                                    fontSize: 25, fontFamily: 'Fredoka')),
-                          ),
-                          Container
-                            (
-                            width: MediaQuery.of(context).size.width/4,
-                            margin: EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration
-                              (
-                                border: Border(top: BorderSide(color: Colors.grey[800], width: 2))
-                            ),
-                          ),
-                          Container
-                            (
-                            width: MediaQuery.of(context).size.width/4,
-                            alignment: Alignment.centerLeft,
-                            margin: EdgeInsets.only(right: MediaQuery.of(context).size.width/4),
-                            child: Text('Selecione a data em que você deseja visitar o parque', textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.grey[900],
-                                    fontSize: 30, fontFamily: 'Fredoka')),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              ]
-            ),
-          );
-        }
-    );
+    Navigator.of(context).push(MaterialPageRoute
+      (builder: (context) => PreLoadTicketScreen(selectedDate)));
   }
   
-  Widget calendar(orientation)
+  Widget calendar(isPortrait, width)
   {
-    double width = MediaQuery.of(context).size.width;
-    bool checker = orientation == Orientation.portrait;
-
     void _onDaySelected(DateTime day, List events)
     {
-      if(day.isAfter(startDay)) setState(() => selectedDate = day);
-      active = true;
+      setState(() => selectedDate = day);
     }
 
-    Widget portraitCalendar()
-    {
-      return Container
+    return Container
+    (
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration
         (
-        margin: EdgeInsets.symmetric(vertical: 20, horizontal: checker ? width/6: width/7),
-        padding: EdgeInsets.all(10),
-        decoration: BoxDecoration
-          (
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue, width: 2),
-            color: Colors.white
-        ),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.blue, width: 2),
+          color: Colors.white
+      ),
+      child: SingleChildScrollView
+        (
         child: TableCalendar
           (
+          availableGestures: AvailableGestures.horizontalSwipe,
           locale: 'pt_BR',
           calendarController: _calendarController,
           startingDayOfWeek: StartingDayOfWeek.sunday,
           startDay: startDay,
           endDay: DateTime(2020, 12, 31),
+          initialSelectedDay: startDay,
           calendarStyle: CalendarStyle
-          (
-            selectedColor: Colors.green[400],
-            todayColor: Colors.transparent,
-            markersColor: Colors.brown[700],
+            (
+            selectedColor: Colors.blue[400],
+            markersColor: Colors.red[700],
             outsideDaysVisible: false,
           ),
           headerStyle: HeaderStyle
@@ -162,123 +81,213 @@ class _CalendarScreenState extends State<CalendarScreen>
           ),
           onDaySelected: _onDaySelected,
         ),
-      );
-    }
-
-    Widget landscapeCalendar()
-    {
-      return Container
-      (
-        alignment: Alignment.topLeft,
-        margin: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-        padding: EdgeInsets.all(10),
-        decoration: BoxDecoration
-          (
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue, width: 2),
-            color: Colors.white
-        ),
-        child: TableCalendar
-          (
-          locale: 'pt_BR',
-          calendarController: _calendarController,
-          startingDayOfWeek: StartingDayOfWeek.sunday,
-          startDay: startDay,
-          endDay: DateTime(2020, 12, 31),
-          calendarStyle: CalendarStyle(
-            selectedColor: Colors.green[400],
-            todayColor: Colors.transparent,
-            markersColor: Colors.brown[700],
-            outsideDaysVisible: false,
-          ),
-          headerStyle: HeaderStyle(formatButtonVisible: false, centerHeaderTitle: true),
-          onDaySelected: _onDaySelected,
-        ),
-      );
-    }
-
-    return checker ? portraitCalendar():landscapeCalendar();
+      )
+    );
   }
-
-  Widget appBar(orientation)
+  
+  Widget portraitBuild(isPortrait, width)
   {
-    bool isPortrait = orientation == Orientation.portrait;
-    double width = MediaQuery.of(context).size.width;
-    return PreferredSize
+    return SingleChildScrollView
+    (
+      child: Column
       (
-      preferredSize: Size.fromHeight(95),
-      child: Container
-        (
-          width: width,
-          alignment: Alignment.centerLeft,
-          padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
-          decoration: BoxDecoration
-            (
-            color: Colors.white,
-            boxShadow:
-            [
-              BoxShadow
-                (
-                color: Colors.black38,
-                offset: Offset(0, 10),
-                blurRadius: 5.0,
-              ),
-            ],
+        children:
+        [
+          Container
+          (
+            margin: EdgeInsets.symmetric(horizontal: 75, vertical: 25),
+            child: Text('Selecione a data de entrada', style: TextStyle
+              (fontSize: 35, fontFamily: 'Fredoka', color: Colors.grey[600]),
+                textAlign: TextAlign.center,),
           ),
-          child: Row
-            (
-            children:
-            [
-              Image.asset('lib/assets/img/logo_full.png', height: 120),
-              Expanded(child: Container()),
-              FlatButton(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  color: Colors.blue, child: Container(height: 60, alignment: Alignment.center,
-                      child: Text("Voltar", style: TextStyle(color: Colors.white,
-                          fontFamily: 'Fredoka', fontSize: 30))), onPressed: () =>
-                      Navigator.of(context).pop()),
-            ],
+          Container
+          (
+            margin: EdgeInsets.symmetric(horizontal: 75),
+            child: calendar(isPortrait, width),
+          ),
+          Container
+          (
+            width: width,
+            padding: EdgeInsets.symmetric(horizontal: 75, vertical: 25),
+            child: FlatButton
+              (
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              disabledColor: Colors.blueGrey[100],
+              color: Colors.blue,
+              onPressed: () => openTicketScreen(selectedDate),
+              child: Container
+                (
+                alignment: Alignment.center,
+                padding: EdgeInsets.all(5),
+                height: 45,
+                width: (width/2) - 112,
+                child: Row
+                  (
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children:
+                  [
+                    Container(child: Text('Continuar', style: TextStyle
+                      (fontSize: 20, fontFamily: 'Fredoka', color: Colors.white))),
+                    Container(child: Icon(Icons.chevron_right, size: 30, color: Colors.white))
+                  ],
+                ),
+              ),
+            ),
           )
+        ],
       ),
     );
   }
 
-  Widget backgroundWidget(orientation)
+  Widget landscapeBuild(isPortrait, width)
+  {
+    double sized = 30;
+    double height = MediaQuery.of(context).size.height - 90;
+    double padding = 10;
+    return Padding
+    (
+      padding: EdgeInsets.fromLTRB(250, 25, padding, 25),
+      child: SingleChildScrollView
+      (
+        physics: BouncingScrollPhysics(),
+        child: Row
+          (
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children:
+          [
+            Container
+              (
+              alignment: Alignment.centerRight,
+              width: width/2 - 200 - sized,
+              height: height,
+              child: calendar(isPortrait, width),
+            ),
+            SizedBox(width: 60),
+            Container
+              (
+              alignment: Alignment.centerRight,
+              width: width/3 - padding - sized,
+              height: height,
+              child: Column
+                (
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children:
+                [
+                  Text('Selecione a data de entrada', style: TextStyle
+                    (fontSize: 40, fontFamily: 'Fredoka', color: Colors.grey[700]),
+                      textAlign: TextAlign.center),
+                  Divider(thickness: 2),
+                  Text('Clique na data desejada em nosso calendário para '
+                      'prosseguir com a compra', style: TextStyle
+                    (fontSize: 25, fontFamily: 'Fredoka', color: Colors.blueGrey[500]),
+                      textAlign: TextAlign.center),
+                  Divider(thickness: 2),
+                  Container
+                    (
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Row
+                      (
+                      children:
+                      [
+                        Container
+                          (
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.deepPurple[100]),
+                          height: 40,
+                          width: 40,
+                        ),
+                        Container
+                          (
+                          padding: EdgeInsets.only(left: 10),
+                          child: Text("=  Data de hoje", style: TextStyle(fontFamily: 'Fredoka')),
+                        )
+                      ],
+                    ),
+                  ),
+                  Container
+                    (
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Row
+                      (
+                      children:
+                      [
+                        Container
+                          (
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.blue),
+                          height: 40,
+                          width: 40,
+                        ),
+                        Container
+                          (
+                          padding: EdgeInsets.only(left: 10),
+                          child: Text("=  Data Selecionada", style: TextStyle(fontFamily: 'Fredoka')),
+                        )
+                      ],
+                    ),
+                  ),
+                  Divider(thickness: 2),
+                  FlatButton
+                    (
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    disabledColor: Colors.blueGrey[100],
+                    color: Colors.blue,
+                    onPressed: () => openTicketScreen(selectedDate),
+                    child: Container
+                      (
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.all(5),
+                      height: 45,
+                      width: (width/2) - 112,
+                      child: Row
+                        (
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children:
+                        [
+                          Container(child: Text('Continuar', style: TextStyle
+                            (fontSize: 20, fontFamily: 'Fredoka', color: Colors.white))),
+                          Expanded(child: Container()),
+                          Container(child: Icon(Icons.chevron_right, size: 30, color: Colors.white))
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context)
   {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    return Stack
+    
+    return OrientationBuilder
       (
-      children:
-      [
-        Container
+        builder: (context, orientation)
+        {
+          bool isPortrait = orientation == Orientation.portrait;
+          return Stack
           (
-          alignment: Alignment.topCenter,
-          child: Row
-            (
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children:
-              [
-                Image.asset('lib/assets/img/bg_01.png', height: height,
-                    width: orientation == Orientation.portrait ? 100:200, fit: BoxFit.fill),
-                Expanded(child: Container())
-              ]
-          ),
-        ),
-        Container
-          (
-            alignment: Alignment.topCenter,
-            child: Row
+            children: 
+            [
+              backgroundWidget(height, isPortrait),
+              Scaffold
               (
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children:
-                [
-                  Expanded(child: Container()),
-                  Image.asset('lib/assets/img/bg_02.png', height: 200,
-                    width: orientation == Orientation.portrait ? width/6:width/8, fit: BoxFit.fill,),
-                ]
-            )
-        )
-      ],
+                backgroundColor: Colors.transparent,
+                appBar: appBar(width, context),
+                body: isPortrait ? portraitBuild(isPortrait, width) : landscapeBuild(isPortrait, width),
+              )
+            ],
+          );
+        }
     );
   }
 }

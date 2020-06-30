@@ -2,6 +2,9 @@ import 'dart:html' as html;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:guarappweb/screens/product_screen.dart';
+import 'package:guarappweb/widgets/app_bar.dart';
+import 'package:guarappweb/widgets/background_widget.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class PreLoadTicketScreen extends StatefulWidget
@@ -55,8 +58,10 @@ class _TicketScreenState extends State<TicketScreen>
   final List<DocumentSnapshot> _productList;
   final DateTime selectedDate;
   _TicketScreenState(this._productList, this.selectedDate);
+
   bool isWeekend;
   List<bool> visible = [];
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState()
@@ -72,22 +77,25 @@ class _TicketScreenState extends State<TicketScreen>
   @override
   Widget build(BuildContext context)
   {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
     return OrientationBuilder
-      (
+    (
       builder: (context, orientation)
       {
-        bool checker = orientation == Orientation.portrait;
+        bool isPortrait = orientation == Orientation.portrait;
 
         return Scaffold
         (
           backgroundColor: Colors.white,
-          appBar: appBar(orientation),
+          appBar: appBar(width, context),
           body: Stack
           (
             children:
             [
-              backgroundWidget(orientation),
-              checker ? portraitBuild():landscapeBuild()
+              backgroundWidget(height, isPortrait),
+              isPortrait ? portraitBuild(width, height) : landscapeBuild(width, height)
             ],
           ),
         );
@@ -95,18 +103,16 @@ class _TicketScreenState extends State<TicketScreen>
     );
   }
 
-  Widget portraitBuild()
+  Widget portraitBuild(width, height)
   {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-    bool checker = height>1.4*width;
+    bool sizeChecker = height>1.4*width;
     return GridView.builder
       (
-        physics: ClampingScrollPhysics(),
+        physics: BouncingScrollPhysics(),
         itemCount: _productList.length,
         padding: EdgeInsets.symmetric(vertical: 20, horizontal: 100),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
-          (mainAxisSpacing: width/25, crossAxisSpacing: width/20, crossAxisCount: checker ? 1:2),
+          (mainAxisSpacing: width/25, crossAxisSpacing: width/20, crossAxisCount: sizeChecker ? 1:2),
         itemBuilder: (context, index)
         {
           Map data = _productList.elementAt(index).data;
@@ -115,43 +121,47 @@ class _TicketScreenState extends State<TicketScreen>
     );
   }
 
-  Widget landscapeBuild()
+  Widget landscapeBuild(width, height)
   {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-    bool checker = 1.6*height>width;
-    bool checker2 = 1.25*height>width;
-    return SingleChildScrollView
+    bool sizeChecker = 1.6*height>width;
+    bool sizeChecker2 = 1.25*height>width;
+    return Scrollbar
     (
-      physics: ClampingScrollPhysics(),
-      child: Column
+      isAlwaysShown: true,
+      controller: scrollController,
+      child: SingleChildScrollView
       (
-        children:
-        [
-          Container
+        controller: scrollController,
+        physics: BouncingScrollPhysics(),
+        child: Column
+          (
+          children:
+          [
+            Container
             (
-            padding: EdgeInsets.only(top: 40, left: checker ? 100 : 150,
-                right: checker ? 100 : 150, bottom: 40),
-            child: Text('Escolha seu pacote', style: TextStyle(fontSize: checker ?
-              (checker2 ? width/15:width/20):width/25,
-                color: Colors.grey[700], fontFamily: 'Fredoka')),
-          ),
-          GridView.builder
-            (
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: _productList.length,
-              padding: EdgeInsets.symmetric(horizontal: 150, vertical: 10),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
-                (mainAxisSpacing: width/25, crossAxisSpacing: width/25,
-                  crossAxisCount: checker ? (checker2 ? 2 : 3): 4),
-              itemBuilder: (context, index)
-              {
-                Map data = _productList.elementAt(index).data;
-                return productCard(data, index, false);
-              }
-          ),
-        ],
+              padding: EdgeInsets.only(top: 40, left: 400,
+                  right: sizeChecker ? 100 : 150, bottom: 40),
+              child: Text('Escolha seu pacote', style: TextStyle(fontSize: sizeChecker ?
+              (sizeChecker2 ? width/15:width/20):width/25,
+                  color: Colors.grey[700], fontFamily: 'Fredoka')),
+            ),
+            GridView.builder
+              (
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: _productList.length,
+                padding: EdgeInsets.fromLTRB(400, 10, 150, 10),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
+                  (mainAxisSpacing: width/25, crossAxisSpacing: width/25,
+                    crossAxisCount: sizeChecker ? (sizeChecker2 ? 2 : 3): 4),
+                itemBuilder: (context, index)
+                {
+                  Map data = _productList.elementAt(index).data;
+                  return productCard(data, index, false);
+                }
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -204,7 +214,7 @@ class _TicketScreenState extends State<TicketScreen>
                   child: ClipRRect
                   (
                     borderRadius: BorderRadius.circular(4),
-                    child: Image.network(isWeekend ? data['mask_weekend']:data['mask_week']),
+                    child: isWeekend ? Image.network(data['mask_weekend']) : Image.network(data['mask_week']),
                   ),
                 ),
               ),
@@ -221,97 +231,14 @@ class _TicketScreenState extends State<TicketScreen>
                     {
                       setState(() => visible[index] = !visible[index]);
                     },
-                    onTap: (){html.window.location.href = 'http://guarapark.com';},
+                    onTap: (){Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductScreen(data, selectedDate)));},
                     hoverColor: Colors.transparent,
                   ),
                 ),
               ),
-
             ],
           ),
         )
-    );
-  }
-
-  Widget appBar(orientation)
-  {
-    bool isPortrait = orientation == Orientation.portrait;
-    double width = MediaQuery.of(context).size.width;
-    return PreferredSize
-    (
-      preferredSize: Size.fromHeight(95),
-      child: Container
-        (
-        width: width,
-        alignment: Alignment.centerLeft,
-        padding: EdgeInsets.fromLTRB(80, 10, 30, 10),
-        decoration: BoxDecoration
-          (
-          color: Colors.white,
-          boxShadow:
-          [
-            BoxShadow
-              (
-              color: Colors.black38,
-              offset: Offset(0, 10),
-              blurRadius: 5.0,
-            ),
-          ],
-        ),
-        child: Row
-        (
-          children:
-          [
-            Image.asset('lib/assets/img/logo_full.png', height: 120),
-            Expanded(child: Container()),
-            FlatButton(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              color: Colors.blue, child: Container(height: 60, alignment: Alignment.center,
-                child: Text("Voltar", style: TextStyle(color: Colors.white,
-                  fontFamily: 'Fredoka', fontSize: 30))), onPressed: () =>
-                    Navigator.of(context).pop()),
-          ],
-        )
-      ),
-    );
-  }
-
-  Widget backgroundWidget(orientation)
-  {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-    return Stack
-      (
-      children:
-      [
-        Container
-          (
-          alignment: Alignment.topCenter,
-          child: Row
-            (
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children:
-              [
-                Image.asset('lib/assets/img/bg_01.png', height: height,
-                    width: orientation == Orientation.portrait ? 100:200, fit: BoxFit.fill),
-                Expanded(child: Container())
-              ]
-          ),
-        ),
-        Container
-          (
-            alignment: Alignment.topCenter,
-            child: Row
-              (
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children:
-                [
-                  Expanded(child: Container()),
-                  Image.asset('lib/assets/img/bg_02.png', height: 200,
-                    width: orientation == Orientation.portrait ? width/6:width/8, fit: BoxFit.fill,),
-                ]
-            )
-        )
-      ],
     );
   }
 }

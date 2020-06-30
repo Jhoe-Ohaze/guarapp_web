@@ -18,7 +18,7 @@ class _PaymentScreenState extends State<PaymentScreen>
   final Map<String, dynamic> checkoutMap;
   _PaymentScreenState(this.checkoutMap);
 
-  Future<Map> _getPage() async
+  Future<Map<String, dynamic>> _getPage() async
   {
     http.Response response;
     String url = "https://cieloecommerce.cielo.com.br/api/public/v1/orders";
@@ -57,24 +57,19 @@ class _PaymentScreenState extends State<PaymentScreen>
             case ConnectionState.waiting:
               return Center(child: CircularProgressIndicator());
             default:
+              print(snapshot.data);
               String url = snapshot.data["settings"]["checkoutUrl"];
               html.window.location.href = url;
               return Scaffold
               (
                 body: Column
                 (
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>
                   [
                     Container(margin: EdgeInsets.all(10),
                         child: Text("Você será redirecionado para a página de pagamento...")),
-                    MaterialButton
-                      (
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      color: Colors.redAccent,
-                      child: Text("Voltar", style: TextStyle(color: Colors.white)),
-                      onPressed: (){Navigator.of(context).pop(); Navigator.of(context).pop();},
-                    ),
                   ],
                 ),
               );

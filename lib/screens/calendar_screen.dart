@@ -95,35 +95,35 @@ class _CalendarScreenState extends State<CalendarScreen>
         [
           Container
           (
-            margin: EdgeInsets.symmetric(horizontal: 75, vertical: 25),
+            margin: EdgeInsets.symmetric(horizontal: 50, vertical: 25),
             child: Text('Selecione a data de entrada', style: TextStyle
               (fontSize: 35, fontFamily: 'Fredoka', color: Colors.grey[600]),
                 textAlign: TextAlign.center,),
           ),
           Container
           (
-            margin: EdgeInsets.symmetric(horizontal: 75),
+            margin: EdgeInsets.symmetric(horizontal: 50),
             child: calendar(isPortrait, width),
           ),
           Container
           (
             width: width,
-            padding: EdgeInsets.symmetric(horizontal: 75, vertical: 25),
+            padding: EdgeInsets.symmetric(horizontal: 50, vertical: 25),
             child: FlatButton
-              (
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              disabledColor: Colors.blueGrey[100],
+            (
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: Colors.blue[100], width: 2)),
               color: Colors.blue,
               onPressed: () => openTicketScreen(selectedDate),
               child: Container
-                (
+              (
                 alignment: Alignment.center,
                 padding: EdgeInsets.all(5),
                 height: 45,
                 width: (width/2) - 112,
                 child: Row
                   (
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children:
                   [

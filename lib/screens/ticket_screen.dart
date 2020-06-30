@@ -105,14 +105,14 @@ class _TicketScreenState extends State<TicketScreen>
 
   Widget portraitBuild(width, height)
   {
-    bool sizeChecker = height>1.4*width;
+    bool sizeChecker = height>1.2*width;
     return GridView.builder
       (
         physics: BouncingScrollPhysics(),
         itemCount: _productList.length,
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 100),
+        padding: EdgeInsets.fromLTRB(75, 10, 75, 0),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
-          (mainAxisSpacing: width/25, crossAxisSpacing: width/20, crossAxisCount: sizeChecker ? 1:2),
+          (mainAxisSpacing: width/20, crossAxisSpacing: width/20, crossAxisCount: sizeChecker ? 1:2),
         itemBuilder: (context, index)
         {
           Map data = _productList.elementAt(index).data;
@@ -150,9 +150,9 @@ class _TicketScreenState extends State<TicketScreen>
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemCount: _productList.length,
-                padding: EdgeInsets.fromLTRB(400, 10, 150, 10),
+                padding: EdgeInsets.fromLTRB(400, 10, 150, 0),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount
-                  (mainAxisSpacing: width/25, crossAxisSpacing: width/25,
+                  (mainAxisSpacing: width/40, crossAxisSpacing: width/40,
                     crossAxisCount: sizeChecker ? (sizeChecker2 ? 2 : 3): 4),
                 itemBuilder: (context, index)
                 {

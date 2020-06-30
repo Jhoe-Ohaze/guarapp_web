@@ -4,7 +4,7 @@ Widget appBar(width, context)
 {
   return PreferredSize
     (
-    preferredSize: Size.fromHeight(95),
+    preferredSize: Size.fromHeight(60),
     child: Container
       (
         width: width,

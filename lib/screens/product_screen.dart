@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:guarappweb/screens/payment_screen.dart';
+import 'package:guarappweb/screens/redirect_screen.dart';
 import 'package:guarappweb/widgets/app_bar.dart';
 import 'package:guarappweb/widgets/background_widget.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -40,7 +40,7 @@ class _ProductScreenState extends State<ProductScreen>
 
     checkoutMap = {
       "OrderNumber": checkoutID,
-      "SoftDescriptor": data['description'],
+      "SoftDescriptor": "",
       "Cart":{
         "Discount":{
           "Type":"Percent",
@@ -50,7 +50,7 @@ class _ProductScreenState extends State<ProductScreen>
         [
           {
             "Name": data['name'],
-            "Description": data['desciption'],
+            "Description": data['description'],
             "UnitPrice": isWeekend ? data['price_weekend'] : data['price_week'],
             "Quantity": 1,
             "Type":"Asset",
@@ -95,7 +95,8 @@ class _ProductScreenState extends State<ProductScreen>
 
   void openPaymentScreen(checkoutMap)
   {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentScreen(checkoutMap)));
+    Navigator.of(context).push(MaterialPageRoute
+      (builder: (context) => RedirectScreen(checkoutMap)));
   }
 
   Widget buildPortrait(height, width)
@@ -103,7 +104,7 @@ class _ProductScreenState extends State<ProductScreen>
     return Container
       (
       height: height,
-      padding: EdgeInsets.symmetric(vertical: 25, horizontal: 75),
+      padding: EdgeInsets.only(left: 75, top: 25, right: 75),
       child: SingleChildScrollView
         (
         physics: BouncingScrollPhysics(),

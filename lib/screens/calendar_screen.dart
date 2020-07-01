@@ -51,10 +51,10 @@ class _CalendarScreenState extends State<CalendarScreen>
     (
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration
-        (
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.blue, width: 2),
-          color: Colors.white
+      (
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue, width: 2),
+        color: Colors.white
       ),
       child: SingleChildScrollView
         (
@@ -122,8 +122,7 @@ class _CalendarScreenState extends State<CalendarScreen>
                 height: 45,
                 width: (width/2) - 112,
                 child: Row
-                  (
-                  mainAxisAlignment: MainAxisAlignment.center,
+                (
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children:
                   [

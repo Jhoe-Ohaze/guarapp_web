@@ -47,11 +47,10 @@ class _RedirectScreenState extends State<RedirectScreen>
         builder: (context, snapshot)
         {
           if(snapshot.data != null)
-            {
-              print(snapshot.data);
-              String url = snapshot.data["settings"]["checkoutUrl"];
-              html.window.location.href = url;
-            }
+          {
+            String url = snapshot.data["settings"]["checkoutUrl"];
+            html.window.location.href = url;
+          }
           return Container
           (
             width: width,
@@ -61,9 +60,12 @@ class _RedirectScreenState extends State<RedirectScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children:
               [
-                Text("Você será redirecionado à pagina de pagamento...",
-                  style: TextStyle(fontSize: 25, fontFamily: 'Fredoka'),
-                    textAlign: TextAlign.center),
+                Container(
+                  padding: EdgeInsets.all(20),
+                  child: Text("Você será redirecionado à pagina de pagamento...",
+                      style: TextStyle(fontSize: 25, fontFamily: 'Fredoka'),
+                      textAlign: TextAlign.center),
+                ),
                 Center(child: CircularProgressIndicator())
               ],
             ),

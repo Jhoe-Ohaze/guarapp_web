@@ -33,6 +33,7 @@ dependencies:
   cloud_firestore: ^0.13.2
   firebase_storage: ^3.1.5
   firebase_auth: ^0.15.5+3
+  firebase_database: ^3.1.6
 
   # Misc
   http: ^0.12.0

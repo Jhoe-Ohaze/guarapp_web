@@ -36,7 +36,8 @@ class _ProductScreenState extends State<ProductScreen>
     isWeekend = (selectedDate.weekday == 6 || selectedDate.weekday == 7);
 
     checkoutID = '$year${month < 10 ? '0$month' : month}${day < 10 ? '0$day' : day}'
-        '${data['position']}${data['amount_adult']}${data['amount_kid']}$milisec';
+        '${data['position']}${data['amount_adult']}${data['amount_kid']}M$milisec';
+    print(checkoutID);
 
     checkoutMap = {
       "OrderNumber": checkoutID,

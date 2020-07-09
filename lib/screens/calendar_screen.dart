@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:guarappweb/screens/ticket_screen.dart';
@@ -13,6 +14,8 @@ class CalendarScreen extends StatefulWidget
 
 class _CalendarScreenState extends State<CalendarScreen> 
 {
+  int disp = 0;
+  GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
   CalendarController _calendarController;
   DateTime selectedDate, startDay, currentDate;
 
@@ -22,7 +25,7 @@ class _CalendarScreenState extends State<CalendarScreen>
     currentDate = DateTime.now();
     currentDate = DateTime(currentDate.year, currentDate.month, currentDate.day);
     _calendarController = CalendarController();
-    startDay = currentDate.hour < 15 ? currentDate : currentDate.add(Duration(days: 1));
+    startDay = currentDate.isAfter(DateTime(2020,07,11)) ? currentDate.hour < 15 ? currentDate : currentDate.add(Duration(days: 1)): DateTime(2020, 07, 11);
     selectedDate = startDay;
     super.initState();
   }
@@ -84,6 +87,21 @@ class _CalendarScreenState extends State<CalendarScreen>
       )
     );
   }
+
+  Future<int> getLimit() async
+  {
+    String day = selectedDate.day < 10 ? "0${selectedDate.day}":selectedDate.day.toString();
+    String month = selectedDate.month < 10 ? "0${selectedDate.month}":selectedDate.month.toString();
+    String year = selectedDate.year.toString();
+    DocumentSnapshot docSnap =  await Firestore.instance.collection("limits").document(year).collection(month).document(day).get();
+    if(docSnap.exists) {
+      int total = docSnap.data['total'];
+      int expected = docSnap.data['expected'];
+      key.currentState.setState(() => disp = total - expected);
+      return disp >= 0 ? total - expected : 0;
+    }
+    else {key.currentState.setState(() => disp = 150); return 150;}
+  }
   
   Widget portraitBuild(isPortrait, width)
   {
@@ -107,33 +125,79 @@ class _CalendarScreenState extends State<CalendarScreen>
           ),
           Container
           (
+            height: 40,
             width: width,
-            padding: EdgeInsets.symmetric(horizontal: 50, vertical: 25),
-            child: FlatButton
-            (
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),
-              side: BorderSide(color: Colors.blue[100], width: 2)),
-              color: Colors.blue,
-              onPressed: () => openTicketScreen(selectedDate),
-              child: Container
+            margin: EdgeInsets.fromLTRB(50, 20, 50, 0),
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+            decoration: BoxDecoration
               (
-                alignment: Alignment.center,
-                padding: EdgeInsets.all(5),
-                height: 45,
-                width: (width/2) - 112,
-                child: Row
-                (
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children:
-                  [
-                    Container(child: Text('Continuar', style: TextStyle
-                      (fontSize: 20, fontFamily: 'Fredoka', color: Colors.white))),
-                    Container(child: Icon(Icons.chevron_right, size: 30, color: Colors.white))
-                  ],
-                ),
-              ),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue, width: 2),
+                color: Colors.white
             ),
-          )
+            child: Row
+            (
+              children:
+              [
+                Text("Ingressos disponíveis:"),
+                Expanded(child: Container()),
+                FutureBuilder
+                (
+                  future: getLimit(),
+                  builder: (context, snapshot)
+                  {
+                    switch(snapshot.connectionState)
+                    {
+                      case ConnectionState.done:
+                      {
+                        return Text(snapshot.data.toString());
+                      }
+                      default:
+                        return CircularProgressIndicator();
+                    }
+                  },
+                )
+              ],
+            ),
+          ),
+          SizedBox
+          (
+            height: 140,
+            width: width,
+            child: Scaffold
+            (
+              key: key,
+              backgroundColor: Colors.transparent,
+              body: Container
+                (
+                width: width,
+                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 25),
+                child: FlatButton
+                  (
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: Colors.blue[100], width: 2)),
+                  color: Colors.blue,
+                  onPressed: disp > 0 ? () => openTicketScreen(selectedDate) : null,
+                  child: Container
+                    (
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.all(5),
+                    height: 45,
+                    width: (width/2) - 112,
+                    child: Row
+                      (
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children:
+                      [
+                        Container(child: Text('Continuar', style: TextStyle
+                          (fontSize: 20, fontFamily: 'Fredoka', color: Colors.white))),
+                        Container(child: Icon(Icons.chevron_right, size: 30, color: Colors.white))
+                      ],
+                    ),
+                  ),
+                ),
+              )
+          ))
         ],
       ),
     );

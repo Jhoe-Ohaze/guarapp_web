@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:guarappweb/screens/ticket_screen.dart';
 import 'package:guarappweb/widgets/app_bar.dart';
@@ -14,8 +15,7 @@ class CalendarScreen extends StatefulWidget
 
 class _CalendarScreenState extends State<CalendarScreen> 
 {
-  int disp = 0;
-  GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
+  ValueNotifier<int> disp = ValueNotifier<int>(0);
   CalendarController _calendarController;
   DateTime selectedDate, startDay, currentDate;
 
@@ -47,7 +47,7 @@ class _CalendarScreenState extends State<CalendarScreen>
   {
     void _onDaySelected(DateTime day, List events)
     {
-      setState(() => selectedDate = day);
+      setState(() {selectedDate = day; disp.value = 0;});
     }
 
     return Container
@@ -93,16 +93,25 @@ class _CalendarScreenState extends State<CalendarScreen>
     String day = selectedDate.day < 10 ? "0${selectedDate.day}":selectedDate.day.toString();
     String month = selectedDate.month < 10 ? "0${selectedDate.month}":selectedDate.month.toString();
     String year = selectedDate.year.toString();
-    DocumentSnapshot docSnap =  await Firestore.instance.collection("limits").document(year).collection(month).document(day).get();
-    if(docSnap.exists) {
-      int total = docSnap.data['total'];
-      int expected = docSnap.data['expected'];
-      key.currentState.setState(() => disp = total - expected);
-      return disp >= 0 ? total - expected : 0;
+
+    DocumentSnapshot snap =  await Firestore.instance
+        .collection("limits").document("years").collection(year)
+          .document("months").collection(month).document(day).get();
+
+    try
+    {
+      if(snap.exists)
+      {
+        int total = snap.data['limit'];
+        int expected = snap.data['expected'];
+        disp.value = total - expected;
+        return disp.value >= 0 ? disp.value : 0;
+      }
+      else {disp.value = 150; return 150;}
     }
-    else {key.currentState.setState(() => disp = 150); return 150;}
+    catch(e){print(e);}
   }
-  
+
   Widget portraitBuild(isPortrait, width)
   {
     return SingleChildScrollView
@@ -160,30 +169,30 @@ class _CalendarScreenState extends State<CalendarScreen>
               ],
             ),
           ),
-          SizedBox
+          ValueListenableBuilder
           (
-            height: 140,
-            width: width,
-            child: Scaffold
-            (
-              key: key,
-              backgroundColor: Colors.transparent,
-              body: Container
-                (
-                width: width,
+            valueListenable: disp,
+            child: Container(),
+            builder: (context, value, child)
+            {
+              return Container
+              (
+                alignment: Alignment.center,
+                height: 100,
                 padding: EdgeInsets.symmetric(horizontal: 50, vertical: 25),
                 child: FlatButton
-                  (
+                (
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),
                       side: BorderSide(color: Colors.blue[100], width: 2)),
                   color: Colors.blue,
-                  onPressed: disp > 0 ? () => openTicketScreen(selectedDate) : null,
+                  disabledColor: Colors.blueGrey[100],
+                  onPressed: value > 0 ? () => openTicketScreen(selectedDate) : null,
                   child: Container
-                    (
+                  (
                     alignment: Alignment.center,
                     padding: EdgeInsets.all(5),
                     height: 45,
-                    width: (width/2) - 112,
+                    width: width,
                     child: Row
                       (
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -191,13 +200,15 @@ class _CalendarScreenState extends State<CalendarScreen>
                       [
                         Container(child: Text('Continuar', style: TextStyle
                           (fontSize: 20, fontFamily: 'Fredoka', color: Colors.white))),
+                        Expanded(child: Container()),
                         Container(child: Icon(Icons.chevron_right, size: 30, color: Colors.white))
                       ],
                     ),
                   ),
                 ),
-              )
-          ))
+              );
+            },
+          )
         ],
       ),
     );
@@ -291,32 +302,76 @@ class _CalendarScreenState extends State<CalendarScreen>
                     ),
                   ),
                   Divider(thickness: 2),
-                  FlatButton
+                  Container
+                  (
+                    height: 40,
+                    margin: EdgeInsets.symmetric(vertical: 20),
+                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+                    decoration: BoxDecoration
                     (
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    disabledColor: Colors.blueGrey[100],
-                    color: Colors.blue,
-                    onPressed: () => openTicketScreen(selectedDate),
-                    child: Container
-                      (
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.all(5),
-                      height: 45,
-                      width: (width/2) - 112,
-                      child: Row
-                        (
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children:
-                        [
-                          Container(child: Text('Continuar', style: TextStyle
-                            (fontSize: 20, fontFamily: 'Fredoka', color: Colors.white))),
-                          Expanded(child: Container()),
-                          Container(child: Icon(Icons.chevron_right, size: 30, color: Colors.white))
-                        ],
-                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue, width: 2),
+                      color: Colors.white
                     ),
-                  )
+                    child: Row
+                    (
+                      children:
+                      [
+                        Text("Ingressos disponíveis:"),
+                        Expanded(child: Container()),
+                        FutureBuilder
+                        (
+                          future: getLimit(),
+                          builder: (context, snapshot)
+                          {
+                            switch(snapshot.connectionState)
+                            {
+                              case ConnectionState.done:
+                              {
+                                return Text(snapshot.data.toString());
+                              }
+                              default:
+                                return CircularProgressIndicator();
+                            }
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                  ValueListenableBuilder
+                  (
+                    valueListenable: disp,
+                    child: Container(),
+                    builder: (context, value, child)
+                    {
+                      return FlatButton
+                        (
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        disabledColor: Colors.blueGrey[100],
+                        color: Colors.blue,
+                        onPressed: value > 0 ? () => openTicketScreen(selectedDate) : null,
+                        child: Container
+                          (
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.all(5),
+                          height: 45,
+                          width: (width/2) - 112,
+                          child: Row
+                            (
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children:
+                            [
+                              Container(child: Text('Continuar', style: TextStyle
+                                (fontSize: 20, fontFamily: 'Fredoka', color: Colors.white))),
+                              Expanded(child: Container()),
+                              Container(child: Icon(Icons.chevron_right, size: 30, color: Colors.white))
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             )

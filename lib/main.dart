@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:guarappweb/screens/agreement_screen.dart';
-import 'package:guarappweb/screens/calendar_screen.dart';
-import 'package:guarappweb/screens/ticket_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main()

@@ -8,12 +8,14 @@ admin.initializeApp();
 const nodemailer = require('nodemailer');
 const cors = require('cors')({origin: true});
 let transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: 
-    {
-      user: 'netsuengaming@gmail.com',
-      pass: 'higashi140%'  
-    }
+  host:"mail.guarapark.com",
+  port:"465",
+  secure: true,
+  auth: 
+  {
+    user: 'noreply@guarapark.com',
+    pass: 'Acqu4s&nder'  
+  }
 });
 
 //////////////////////////////////////////////////
@@ -61,12 +63,10 @@ app.post('/payments', (request, response) =>
       {
         var image = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${order_number}`;
         let email = {
-          from: 'test',
+          from: 'Guará Acqua Park',
           to: customeremail,
-          subject: 'test',
-          text: 'test',
+          subject: 'Bilhete de ingresso',
           html: `<p style="font-size: 16px;">
-                 Text
                  </p>
                  <br />
                  <img src= ${image} />`

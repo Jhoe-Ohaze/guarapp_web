@@ -158,9 +158,7 @@ class _CalendarScreenState extends State<CalendarScreen>
                     switch(snapshot.connectionState)
                     {
                       case ConnectionState.done:
-                      {
                         return Text(snapshot.data.toString());
-                      }
                       default:
                         return CircularProgressIndicator();
                     }

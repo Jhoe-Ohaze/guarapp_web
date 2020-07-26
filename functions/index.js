@@ -63,7 +63,7 @@ app.post('/payments', (request, response) =>
       {
         var image = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${order_number}`;
         let email = {
-          from: 'Guará Acqua Park',
+          from: '"Guará Acqua Park" <noreply@guarapark.com>',
           to: customeremail,
           subject: 'Bilhete de ingresso',
           html: `<p style="font-size: 16px;">

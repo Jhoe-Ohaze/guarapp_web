@@ -27,7 +27,7 @@ class _RedirectScreenState extends State<RedirectScreen>
     Map<String, String> headers =
     {
       'Content-Type': 'application/json',
-      'MerchantId' : '8df7525e-666d-4c23-bd49-3a4496f3dfb0'
+      'MerchantId' : ''
     };
 
     response = await http.post(url, headers: headers, body: jsonMap);
